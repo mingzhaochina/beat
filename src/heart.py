@@ -311,6 +311,7 @@ physical_bounds = dict(
 
     time=(-300., 300.),
     time_shift=(-40., 40.),
+    nucleation_time=(-30., 30.),
 
     delta_time=(0., 100.),
     delta_depth=(0., 300.),

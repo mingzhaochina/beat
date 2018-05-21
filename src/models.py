@@ -1366,9 +1366,11 @@ class GeodeticDistributerComposite(GeodeticComposite):
         raise NotImplementedError('Not implemented yet!')
 
 
-class LaplacianDistributerComposite():
+class LaplacianDistributerComposite(Composite):
 
     def __init__(self, project_dir, hypers):
+
+        super(LaplacianDistributerComposite, self).__init__()
 
         self._mode = 'ffi'
         self.slip_varnames = bconfig.static_dist_vars
@@ -1616,6 +1618,8 @@ class SeismicDistributerComposite(SeismicComposite):
 
         self.input_rvs.update(fixed_rvs)
 
+        self.init_hierarchicals()
+
         ref_idx = self.config.gf_config.reference_model_idx
 
         nuc_strike = input_rvs['nucleation_strike']
@@ -1657,9 +1661,15 @@ class SeismicDistributerComposite(SeismicComposite):
 
             # cut data according to wavemaps
             logger.debug('Cut data accordingly')
-            data_traces = self.choppers[wmap.name](
-                self.gfs[key].get_all_tmins(
-                    patchidx) + input_rvs['time_shift'])
+            tmins = \
+                self.gfs[key].get_all_tmins(patchidx) + \
+                input_rvs['nucleation_time']
+
+            if hasattr(self, 'correction_name'):
+                tmins += self.hierarchicals[
+                    self.correction_name][wmap.station_correction_idxs]
+
+            data_traces = self.choppers[wmap.name](tmins)
 
             residuals = data_traces - synthetics
 
@@ -2048,7 +2058,7 @@ class Problem(object):
         hyperparams = {}
         n_hyp = 0
         for datatype, composite in self.composites.items():
-            hypernames = composite.config.get_hypernames()
+!            hypernames = composite.config.get_hypernames()
 
             for hp_name in hypernames:
                 if hp_name in hyperparameters.keys():
@@ -2181,7 +2191,8 @@ class Problem(object):
         Initialise hierarchical random variables of all composites.
         """
         for composite in self.composites.values():
-            composite.init_hierarchicals()
+            if hasattr(composite, 'init_hierarchicals'):
+                composite.init_hierarchicals()
 
     @property
     def hierarchicals(self):
@@ -2192,8 +2203,6 @@ class Problem(object):
         for composite in self.composites.values():
             if composite.hierarchicals is not None:
                 d.update(composite.hierarchicals)
-            else:
-                d = None
 
         return d
 

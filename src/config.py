@@ -35,7 +35,8 @@ guts_prefix = 'beat'
 logger = logging.getLogger('config')
 
 block_vars = [
-    'bl_azimuth', 'bl_amplitude', 'nucleation_strike', 'nucleation_dip', 'time_shift']
+    'bl_azimuth', 'bl_amplitude'
+    'nucleation_strike', 'nucleation_dip', 'nucleation_time']
 seis_vars = ['time', 'duration']
 
 source_names = '''
@@ -77,7 +78,8 @@ interseismic_vars = [
 
 static_dist_vars = ['uparr', 'uperp']
 partial_kinematic_vars = [
-    'nucleation_strike', 'nucleation_dip', 'durations', 'velocities', 'time_shift']
+    'nucleation_strike', 'nucleation_dip', 'nucleation_time',
+    'durations', 'velocities']
 
 kinematic_dist_vars = static_dist_vars + partial_kinematic_vars
 
@@ -132,8 +134,10 @@ default_bounds = dict(
     volume_change=(1e8, 1e10),
     diameter=(5., 10.),
     mix=(0, 1),
+
     time=(-3., 3.),
     time_shift=(-5., 5.),
+    nucleation_time=(-3., 3.),
 
     delta_time=(0., 10.),
     delta_depth=(0., 10.),
@@ -854,7 +858,7 @@ class BEATconfig(Object, Cloneable):
             hypernames.extend(self.seismic_config.get_hypernames())
 
         if self.problem_config.mode == 'ffi':
-            if self.problem_config.mode_config.regularization == 'laplacian':
+ !           if self.problem_config.mode_config.regularization == 'laplacian':
                 hypernames.append(hyper_name_laplacian)
 
         hypers = dict()
